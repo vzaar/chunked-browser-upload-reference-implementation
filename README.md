@@ -25,6 +25,8 @@ To start the development server, from this repository directory, run the followi
 
 `VZAAR_TOKEN="<your vzaar API key>" VZAAR_SECRET="<your vzaar username>" php -S 0.0.0.0:9999`
 
+You can then navigate to http://localhost:9999/client and try uploading files.
+
 Replacing `<your vzaar API key>` and `<your vzaar username>` with your vzaar API key and username respectively.
 
 If you are serving the directory from an existing web server, you will either need to set the `VZAAR_TOKEN` and `VZAAR_SECRET` environment variables, or alter `server/common.php` to hardcode in the environment variables.
