@@ -16,7 +16,7 @@ This reference implemenation uses:
 - **vzaar php sdk** at the time of writing this reference implementation is using an experimental version of the API
 - **jQuery** & **Bootstrap** for the uploader UI
 
-Howw to get started with the reference library
+How to get started with the reference library
 ----------------------------------------------
 
 Either serve this entire directory from an existing web server, or use the PHP development web server.
