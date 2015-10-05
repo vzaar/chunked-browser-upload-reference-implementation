@@ -48,6 +48,6 @@ If you have already implemented a HTML5 based uploader, you will find the proces
 
 The signature will allow you to upload any number of files with a GUID key prefix, as specified by the signature. Each chunk should be uploaded with a suffix indicating its part number. These keys should be sequentially numbered, starting at 0. If any individual chunk of your upload fails, it should be retried automatically by default up to three times, this can be altered with the `max_retries` option of Plupload.
 
-Each chunk of your upload must be a minimum of 5MiB, and a maximum of 5GiB. Chunked uploads outside of these bounds will fail when being processed.
+Each chunk of your upload must be a minimum of 5MiB, and a maximum of 5GiB. Chunked uploads outside of these bounds will fail when being processed, you can alter the size of each chunk in the reference uploader by changing the size of the `desiredChunkSize` variable.  Files smaller than this will not be chunked, but instead uploaded as one piece.
 
 When all parts of your upload are complete, you must make the ProcessVideo API call. This involves setting the optional `chunks` parameter to reflect the number of chunks in your upload.
