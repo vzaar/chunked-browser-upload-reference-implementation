@@ -100,6 +100,9 @@
 
         file.totalChunks = Math.ceil(file.size / desiredChunkSize);
 
+        // set 'key' name for first chunk
+        uploader.settings.multipart_params.key = file.chunkKey;
+
         // set the size of each chunk sent to s3, for a chunked upload
         // setting this causes plupload to start chunking the upload automatically
         uploader.settings.chunk_size = desiredChunkSize;
