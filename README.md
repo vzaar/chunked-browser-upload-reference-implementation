@@ -1,4 +1,4 @@
-vzaar Browser Chunked Uploader Reference Implmentation
+vzaar Browser Chunked Uploader Reference Implementation
 ======================================================
 
 Chunked uploading with vzaar
@@ -10,7 +10,7 @@ Upon the release of the vzaar upload API v1.1, vzaar will support chunked upload
 About this implementation
 -------------------------
 
-This reference implemenation uses:
+This reference implementation uses:
 
 - **plupload** a multi-runtime uploader with support for chunked uploading
 - **vzaar php sdk** at the time of writing this reference implementation is using an experimental version of the API
@@ -46,7 +46,7 @@ In addition when requesting a multipart signature, the bucket policy requires tw
 
 If you have already implemented a HTML5 based uploader, you will find the process for chunked uploads very similar.
 
-The signature will allow you to upload any number of files with a GUID key prefix, as specified by the signature. Each chunk should be uploaded with a suffix indicating its part number. These keys should be sequentially numbered, starting at 0. If any individual chunk of your upload fails
+The signature will allow you to upload any number of files with a GUID key prefix, as specified by the signature. Each chunk should be uploaded with a suffix indicating its part number. These keys should be sequentially numbered, starting at 0. If any individual chunk of your upload fails, it should be retried automatically by default up to three times, this can be altered with the `max_retries` option of Plupload.
 
 Each chunk of your upload must be a minimum of 5MiB, and a maximum of 5GiB. Chunked uploads outside of these bounds will fail when being processed.
 
