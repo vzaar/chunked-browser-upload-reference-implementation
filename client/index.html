@@ -22,7 +22,7 @@
 
     <div class="video-form-container">
       <form action="/server/process_video.php" class="video-form" onsubmit="return false;">
-        <input type="hidden" class="key" name="key">
+        <input type="hidden" class="guid" name="guid">
         <input type="hidden" class="profile" name="profile" value=''>
         <input type="hidden" class="transcoding" name="transcoding" value='true'>
         <input type="hidden" class="width" name="width" value='320'>
@@ -86,11 +86,12 @@
           uploader.settings.multipart_params.key = signature.key;
           // set the key name for the s3 object that we're creating
           file.s3Key = signature.key.replace('${filename}', file.name);
+          file.guid = signature.guid
         }
       });
 
       // sets the size of each chunk being uploaded to s3. As per the S3
-      var desiredChunkSize = plupload.parseSize("32mb");
+      var desiredChunkSize = plupload.parseSize("5mb");
 
       // if the file is bigger than the desired chunk size we can chunk it
       if(file.size > desiredChunkSize) {
@@ -179,10 +180,15 @@
       // colour the progress bar green
       $(".progress-bar", file.uploadHtml).addClass("progress-bar-success");
 
+
+      $('.video-form [name="guid"]').val(file.guid);
       // update the form elements with data for this upload
-      $('.video-form [name="key"]').val(file.s3Key);
       $('.video-form [name="original_filename"]').val(file.name);
-      $('.video-form [name="chunks"]').val(file.chunkIndex);
+      if(file.chunkIndex) {
+        $('.video-form [name="chunks"]').val(file.chunkIndex);
+      } else {
+        $('.video-form [name="chunks"]').remove();
+      }
 
       // set a badge to show the current status of the upload
       $(".label", file.uploadHtml).text("sending to vzaar").

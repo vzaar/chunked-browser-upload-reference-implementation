@@ -562,9 +562,10 @@ class Vzaar
      * @param int $bitrate
      * @param bool $transcoding
      * @param string $replace
+     * @param int|\null $chunks The number of chunks a multipart video has been split into
      * @return mixed
      */
-    public static function processVideoCustomized($guid, $title, $description, $labels, $width = 200, $bitrate = 256, $transcoding = false, $replace = '')
+    public static function processVideoCustomized($guid, $title, $description, $labels, $width = 200, $bitrate = 256, $transcoding = false, $replace = '', $chunks = null)
     {
         $_url = self::$url . "api/videos";
 
@@ -584,6 +585,7 @@ class Vzaar
                     <bitrate>' . $bitrate . '</bitrate>
                 </encoding>';
         if ($transcoding) $data .= '<transcoding>true</transcoding>';
+        if (!is_null($chunks)) $data .= '<chunks>' . $chunks . '</chunks>';
         $data .= '</video> </vzaar-api>';
 
         $c = new HttpRequest($_url);
