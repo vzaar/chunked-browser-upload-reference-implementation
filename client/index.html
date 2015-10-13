@@ -91,7 +91,7 @@
       });
 
       // sets the size of each chunk being uploaded to s3. As per the S3
-      var desiredChunkSize = plupload.parseSize("32mb");
+      var desiredChunkSize = plupload.parseSize("5mb");
 
       // if the file is bigger than the desired chunk size we can chunk it
       if(file.size > desiredChunkSize) {
