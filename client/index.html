@@ -102,7 +102,7 @@
 
     // called immediately before a file starts uploading
     uploader.bind( "BeforeUpload", function(uploader, file) {
-      var accountChunkSize = '5mb';
+      var accountChunkSize = '32mb';
       var desiredChunkSize = plupload.parseSize(accountChunkSize);
       var got_signature;
 
