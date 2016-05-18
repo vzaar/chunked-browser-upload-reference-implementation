@@ -31,6 +31,7 @@
         <input type="hidden" class="original_filename" name="original_filename" value=''>
         <input type="hidden" class="video_title" name="title" value="multipart-test">
         <input type="hidden" class="chunks" name="chunks">
+        <input type='hidden' class='is_multipart' name='is_multipart' value='1'>
       </form>
     </div>
 
@@ -40,115 +41,111 @@
   <script type="text/javascript">
   // use jQuery document ready event to determine when to start setting up the
   // uploader once the page is fininshed loading
-  $(function() {
 
-    // setup a new plupload instance on the page
-    var uploader = new plupload.Uploader({
-      runtimes: 'html5,flash',
-      flash_swf_url: '/plupload/Moxie.swf',
-      // this URL may be overwritten by the response of the signature
-      url: "https://vzaar-upload.s3.amazonaws.com",
-      // page setup for the uploader
-      container: "uploader",
-      browse_button: "upload-button",
-      // set the upload as a multipart-type upload, required for s3 uploading
-      multipart: true,
-      // prevent plupload from sending the unneeded 'name' multipart part
-      send_file_name: false,
-      // this setting will cause a chunk which fails uploading to be retried up
-      // to three times, before considering the whole upload an overall failure
-      max_retries: 3,
-      multipart_params: {
-        acl: "private",
-        // required by the s3 policy
-        success_action_status: "201",
-        // this is replaced from the response from the vzaar signature
-        AWSAccessKeyId: ""
-      }
+  function GigaloaderVersion() {
+    return 'chunked-browser-upload-demo';
+  }
+
+  function generateSignature(chunked, uploader, file) {
+    var result = true;
+    var params = $.param({
+      multipart: chunked,
+      filename: file.name,
+      filesize: file.size,
+      uploader: GigaloaderVersion()
     });
-
-    // called immediately before a file starts uploading
-    uploader.bind( "BeforeUpload", function(uploader, file) {
-      // call our server to get a signature for an upload from vzaar
+    var url = "/server/signature.php?".concat(params)
+    if (uploader.settings.signature_exists) {
+      uploader.settings.signature_exists = false;
+    } else {
       $.ajax({
-        url: "/server/signature.php",
+        url: url,
         type: 'GET',
         dataType: 'json',
         async: false,
         success: function(response) {
-          signature = response["vzaar-api"];
-
-          // set up the uploader with parameters from the vzaar signature response
-          uploader.settings.url = signature.upload_hostname;
-          uploader.settings.multipart_params.AWSAccessKeyId = signature.accesskeyid;
-          uploader.settings.multipart_params.policy = signature.policy;
-          uploader.settings.multipart_params.signature = signature.signature;
-          uploader.settings.multipart_params.key = signature.key;
-          // set the key name for the s3 object that we're creating
-          file.s3Key = signature.key.replace('${filename}', file.name);
-          file.guid = signature.guid
+          handleSignatureSuccess(response['vzaar-api'], uploader, file);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          result = false;
         }
       });
+      return result;
+    }
+  }
 
-      // sets the size of each chunk being uploaded to s3. As per the S3
-      var desiredChunkSize = plupload.parseSize("32mb");
+  function handleSignatureSuccess(signature, uploader, file) {
+    uploader.settings.url = signature.upload_hostname;
+    uploader.settings.multipart_params.acl = signature.acl;
+    uploader.settings.multipart_params.AWSAccessKeyId = signature.accesskeyid;
+    uploader.settings.multipart_params.policy = signature.policy;
+    uploader.settings.multipart_params.signature = signature.signature;
+    uploader.settings.multipart_params.key = signature.key;
+    uploader.settings.multipart_params.success_action_status = 201;
+    uploader.settings.multipart_params['x-amz-meta-uploader'] = GigaloaderVersion();
+    file.s3Key = signature.key.replace('${filename}', file.name);
+    file.guid = signature.guid;
+  }
 
-      // if the file is bigger than the desired chunk size we can chunk it
+  $(function() {
+    var uploader = new plupload.Uploader({
+      runtimes: 'html5,html4',
+      url: "https://vzaar-upload.s3.amazonaws.com",
+      container: "uploader",
+      browse_button: "upload-button",
+      multipart: true,
+      send_file_name: false,
+      max_retries: 3,
+      multipart_params: {},
+      signature_exists: false
+    });
+
+    // called immediately before a file starts uploading
+    uploader.bind( "BeforeUpload", function(uploader, file) {
+      var accountChunkSize = '5mb';
+      var desiredChunkSize = plupload.parseSize(accountChunkSize);
+      var got_signature;
+
+      if (uploader.settings.signature_exists) return;
+
       if(file.size > desiredChunkSize) {
-        // set the initial chunk index to 0
+        got_signature = generateSignature('true', uploader, file);
         file.chunkIndex = 0;
-        file.chunkKey = ( file.s3Key + "." + file.chunkIndex );
-
+        file.chunkKey = (file.s3Key + "." + file.chunkIndex);
         file.totalChunks = Math.ceil(file.size / desiredChunkSize);
-
-        // set 'key' name for first chunk
         uploader.settings.multipart_params.key = file.chunkKey;
-
-        // set the size of each chunk sent to s3, for a chunked upload
-        // setting this causes plupload to start chunking the upload automatically
         uploader.settings.chunk_size = desiredChunkSize;
-
-        // plupload handles these for a chunked upload
-        delete( uploader.settings.multipart_params.chunks );
-        delete( uploader.settings.multipart_params.chunk );
+        delete(uploader.settings.multipart_params.chunks);
+        delete(uploader.settings.multipart_params.chunk);
       } else {
-        // don't chunk the upload
+        got_signature = generateSignature('false', uploader, file);
         uploader.settings.chunk_size = 0;
         uploader.settings.multipart_params.chunks = 0;
         uploader.settings.multipart_params.chunk = 0;
         uploader.settings.multipart_params.key = file.s3Key;
       }
-
-      // template for a progress bar / upload status for the file
       file.uploadHtml = $("<div class='uploadBlock'>Upload: <span class='uploadName'></span> <span class='label label-primary'>uploading</span> <br><div class='speed'>0</div><br><div class='progress'> <div class='progress-bar progress-bar-striped' role='progressbar' aria-valuenow='60' aria-valuemin='0' aria-valuemax='100' style='min-width: 2em; width: 0%;'> 0% </div></div> </div>");
-
-      // mount the upload status to the page
       $("#uploader").append(file.uploadHtml);
       $(".uploadName", file.uploadHtml).text(file.name);
+      return got_signature;
     });
 
-    // called if an error occurrs during the upload (this is an error that would
-    // be returned from s3)
     uploader.bind("Error", function(uploader, error) {
       console.error( "Error during upload: ", error.message);
       $(".progress-bar", error.file.uploadHtml).addClass("progress-bar-danger");
     });
 
-    // called when a file is added to the plupload queue
     uploader.bind("QueueChanged", function(uploader){
       console.info("Queue has changed...");
-      // start uploading immediately
       if (uploader.files.length && uploader.state !== plupload.STARTED){
         console.info("Starting upload...");
         uploader.start();
       }
     });
 
-    // called by plupload intermittently to update the status of uploads
     uploader.bind("UploadProgress", function(uploader, file){
       console.info("Upload progress:", file.percent);
       filePercent = file.percent + "%";
-      // update the profgressbar element on the page
       $(".progress-bar", file.uploadHtml).
         attr("aria-valuenow", file.percent).
         css("width", filePercent).
@@ -157,45 +154,30 @@
         text(plupload.formatSize(uploader.total.bytesPerSec) + " /s");
     });
 
-    // called when an individual chunk of the video has been uploaded
     uploader.bind("ChunkUploaded", function(uploader, file, info){
       console.log( "Chunk uploaded.", info.offset, "of", info.total, "bytes." );
-      // update the chunkkey so that we can keep track of where in the upload
-      // we are
       file.chunkKey = ( file.s3Key + "." + ++file.chunkIndex );
-      // update the multipart_params to reflect the new chunk
       uploader.settings.multipart_params.key = file.chunkKey;
-      //plupload will automatically start the new chunk uploading
-
-      // update the upload label with the current chunk index
       $(".label", file.uploadHtml).
         text("Uploading chunk " + (file.chunkIndex + 1) + "/" + file.totalChunks);
     });
 
-    // this callback is called when the entire file (all chunks) have successfully
-    // been uploaded. At this point we make the vzaar ProcessVideo API call to
-    // start processing the video.
     uploader.bind("FileUploaded", function(uploader, file, response){
       console.log("Entire file uploaded.", response);
-      // colour the progress bar green
       $(".progress-bar", file.uploadHtml).addClass("progress-bar-success");
-
-
       $('.video-form [name="guid"]').val(file.guid);
-      // update the form elements with data for this upload
       $('.video-form [name="original_filename"]').val(file.name);
+
       if(file.chunkIndex) {
         $('.video-form [name="chunks"]').val(file.chunkIndex);
       } else {
         $('.video-form [name="chunks"]').remove();
       }
 
-      // set a badge to show the current status of the upload
       $(".label", file.uploadHtml).text("sending to vzaar").
         removeClass("label-primary").
         addClass("label-info");
 
-      // send the form to vzaar to initiate processing of the video
       $.ajax({
         url: $('form.video-form').attr('action'),
         type: 'POST',
@@ -214,7 +196,6 @@
       });
     });
 
-    // initialise plupload instance on the page
     uploader.init();
   });
   </script>
