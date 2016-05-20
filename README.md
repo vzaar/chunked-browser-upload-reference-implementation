@@ -9,7 +9,7 @@ Upon the release of the vzaar upload API v1.1, vzaar will support chunked upload
 This reference implementation uses:
 
 - **plupload** a multi-runtime uploader with support for chunked uploading
-- **vzaar php sdk** using version 1.2.3
+- **vzaar php sdk** using version 1.3.0
 - **jQuery** & **Bootstrap** for the uploader UI
 
 ### Getting started
