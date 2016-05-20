@@ -9,5 +9,11 @@
   // get a signature from vzaar and output it as JSON
   // setting the second parameter to true indicates that we are requesting a
   // multipart signature
-  echo(json_encode(Vzaar::getUploadSignature(null, true)));
+  // echo(json_encode(Vzaar::getUploadSignature(null, true)));
+
+  echo(json_encode(Vzaar::getUploadSignature(null,
+    $_GET['filename'],
+    true,
+    $_GET['filename'],
+    $_GET['filesize'])));
 ?>
