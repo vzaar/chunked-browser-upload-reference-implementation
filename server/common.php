@@ -1,8 +1,8 @@
 <?php
   // Include the vzaar library
-  require('vzaar/src/Vzaar.php');
+  require('vzaar/lib/vzaar.php');
 
   // Authenticate with vzaar using environmet variables
-  Vzaar::$token = $_ENV['VZAAR_TOKEN'];
-  Vzaar::$secret = $_ENV['VZAAR_SECRET'];
+  VzaarApi\Client::$client_id  = '';
+  VzaarApi\Client::$auth_token = '';
 ?>

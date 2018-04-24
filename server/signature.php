@@ -7,13 +7,27 @@
   header("Content-Type: application/json");
 
   // get a signature from vzaar and output it as JSON
-  // setting the second parameter to true indicates that we are requesting a
-  // multipart signature
-  // echo(json_encode(Vzaar::getUploadSignature(null, true)));
+  $params['filename'] = $_GET['filename'];
+  $params['filesize'] = $_GET['filesize'];
 
-  echo(json_encode(Vzaar::getUploadSignature(null,
-    $_GET['filename'],
-    true,
-    $_GET['filename'],
-    $_GET['filesize'])));
+  if ($_GET["multipart"] === 'true') {
+    $params['desired_part_size'] = $_GET['part_size'];
+    $sig = VzaarApi\Signature::multipart($params);
+  }
+  else {
+    $sig = VzaarApi\Signature::single($params);
+  }
+
+  echo json_encode([
+    "guid"               => $sig->guid,
+    "key"                => $sig->key,
+    "parts"              => $sig->parts,
+    "part_size"          => $sig->part_size,
+    "part_size_in_bytes" => $sig->part_size_in_bytes,
+    "upload_hostname"    => $sig->upload_hostname,
+    "access_key_id"      => $sig->access_key_id,
+    "acl"                => $sig->acl,
+    "policy"             => $sig->policy,
+    "signature"          => $sig->signature
+  ]);
 ?>

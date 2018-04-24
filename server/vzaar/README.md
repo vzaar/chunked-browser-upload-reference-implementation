@@ -1,168 +1,58 @@
-## vzaar API PHP client
-##### vzaar API client for PHP developers.
+# vzaar API
 
->vzaar is the go to video hosting platform for business. Affordable, customizable and secure. Leverage the power of online video and enable commerce with vzaar. For more details and signup please visit [http://vzaar.com](http://vzaar.com)
+![vzaar Logo](https://raw.github.com/vzaar/vzaar-api-php/master/vzaar.png)
 
-#### Using the library
+By [vzaar](http://vzaar.com)
 
-In order to start using vzaar API library
+vzaar's PHP client for interacting with version 2 of the [vzaar API](https://vzaar.readme.io/docs).
 
-```php
-require_once 'Vzaar.php';
+## Requirements
 
-Vzaar::$token = 'VZAAR_API_TOKEN';
-Vzaar::$secret = 'VZAAR_USERNAME';
+- Recommended: PHP 7.0+
+- Minimum: PHP 5.6+
+
+## Installation
+
+Install the package using `composer`:
+
+```
+composer install
 ```
 
-In order to use the vzaar API, you need to have a valid username and API token that you can get from your vzaar dashboard at [http://app.vzaar.com/settings/api](http://app.vzaar.com/settings/api)
+If `composer` is not installed, please follow [these instructions](https://getcomposer.org/doc/00-intro.md).
 
-To check you can connect via the API, you can run the following command:
+## Backwards compatability
 
-```php
-Vzaar::whoAmI();
+Versions 1 and 2 of the vzaar API are incompatable with each other. The same applies to the API SDKs. Some functionality available in the version 1 SDK has been deprecated in version 2 and will not be implemented. The version 2 API also has a different authentication mechanism so your existing API key will not work with version 2 SDKs.
+
+To ease migration to the version 2 SDK, it is possible to use both versions without any conflicts.
+
+```
+Vzaar       # <= this is version 1
+VzaarApi    # <= this is version 2
 ```
 
-If it returns your vzaar username, then you're good to go.
+## Usage
 
-#### User Details
+Configure your API credentials:
 
-This API call returns the user's public details along with relevant metadata.
-
-```php
-Vzaar::getUserDetails('VZAAR_USERNAME');
 ```
 
-#### Video List
-
-This API call returns a list of the user's active videos along with relevant metadata. 20 videos are returned by default, but this is customizable.
-
-```php
-Vzaar::getVideoList('VZAAR_USERNAME', true, 10);
+VzaarApi\Client::$client_id  = '<your-client-id>';
+VzaarApi\Client::$auth_token = '<your-auth-token>';
 ```
 
-In this example, the `true` parameter says that the API call should be authenticated. If you have your API settings set to 'private', then you will need to be authenticated.
-
-#### Video Details
-
-This API call returns metadata about the selected video (dimensions, thumbnail information, author, duration, play count, etc).
-
-```php
-Vzaar::getVideoDetails(VZAAR_VIDEO_ID, true);
-```
-
-In this case, _VZAAR_VIDEO_ID_ is the unique vzaar video ID assigned to a video after its processing.
-
-#### Special characters in filenames
-
-As per the AWS S3 documentation, only a small number of special characters in filenames are supported: http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
-
-The following special characters are supported by the vzaar API:
-
-- a-z
-- A-Z
-- 0-9
-- Space
-- - (dash)
-- . (dot)
-- ! (exclamation)
-- () (braces)
-
-#### Upload Signature
-
-If you are performing your own uploading (e.g. a 3rd-party or custom uploader) you will need to generate an S3 upload signature. You can then use this in your custom uploader.
-
-```php
-Vzaar::getUploadSignature(null, '/tmp/video.mp4', true, 'video.mp4', 102400);
-```
-
-##### Note
-As of version *1.3.0* the method signature for `getUploadSignature` has changed. The new method
-expects additional arguments which are required to support multipart uploads.
-
-### Uploading and processing videos
-
-Getting a video into your vzaar account is a two step process; you must first upload and then process the video.
-
-#### Uploading videos from the filesystem
-
-Use this method when you build desktop apps or when you upload videos to vzaar directly from your server.
-
-```php
-$guid = Vzaar::uploadVideo("/path/to/file/video.mp4");
-Vzaar::processVideo($guid, "Title", "Description", "labels"));
-```
-
-#### Uploading videos using a url
-
-Uploading a new video or replacing an existing one from a url
-
-```php
-$url = "http://www.mywebsite.com/my_video.mp4";
-Vzaar::uploadLink($url, "Title");
-```
-
-#### Processing videos
-
-This API call tells the vzaar system to process a newly uploaded video. This will encode it if necessary and then provide a vzaar video ID back.
-
-Typically you only need to do this when performing your own uploads (see _Upload Signature_).
-
-```php
-Vzaar::processVideo(GUID, TITLE, DESCRIPTION, LABELS, PROFILE);
-```
-
-* `GUID` (string) - Specifies the guid to operate on. Get this from the result of your `getUploadSignature` API call.
-* `TITLE` (string) - Specifies the title for the video.
-* `DESCRIPTION` (string) - Specifies the description for the video.
-* `LABELS` (string) - Comma separated list of labels to be assigned to the video.
-* `PROFILE` (integer) - Specifies the size for the video to be encoded in. If not specified, this will use the vzaar default or the user default (if set). See `src/Vzaar.php` for options.
+Usage instructions and examples are available on [vzaar's documentation site](https://vzaar.readme.io).
 
 
-#### Uploading thumbnails
+## Contributing
 
-Upload thumbnails for a video by using the video id.
+1. Fork it
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request
 
-```php
-$video_id = 123;
-$thumb_path = "/path/to/file/image.jpg";
-Vzaar::uploadThumbnail($video_id, $thumb_path);
-```
-
-#### Uploading thumbnails
-
-Generate a thumbnail based on frame time.
-
-```php
-$video_id = 123;
-Vzaar::generateThumbnail($video_id, 3);
-```
-
-
-#### Editing video
-
-This API call allows a user to edit or change details about a video.
-
-```php
-Vzaar::editVideo(VIDEO_ID, VIDEO_TITLE, VIDEO_DESCRIPTION, MARK_AS_PRIVATE);
-```
-
-The following arguments should be passed to the method:
-
-* `VIDEO_ID` (integer) - Unique vzaar Video ID of the video you are going to modify
-* `VIDEO_TITLE` (string) - Specifies the new title for the video
-* `VIDEO_DESCRIPTION` (string) - Specifies the new description for the video
-* `MARK_AS_PRIVATE` (boolean) (true|false) - Marks the video as private or public
-
-
-#### Deleting video
-
-This API call allows you to delete a video from your account. If deletion was successful it will return _true_ otherwise _false_.
-
-```php
-Vzaar::deleteVideo(VZAAR_VIDEO_ID);
-```
-
-
-### License
+## License
 
 Released under the [MIT License](http://www.opensource.org/licenses/MIT).
