@@ -84,6 +84,10 @@
     uploader.settings.multipart_params.key = signature.key;
     uploader.settings.multipart_params.success_action_status = 201;
     uploader.settings.multipart_params['x-amz-meta-uploader'] = GigaloaderVersion();
+    uploader.settings.multipart_params['x-amz-credential'] = signature["x-amz-credential"];
+    uploader.settings.multipart_params['x-amz-algorithm'] = signature["x-amz-algorithm"];
+    uploader.settings.multipart_params['x-amz-date'] = signature["x-amz-date"];
+    uploader.settings.multipart_params['x-amz-signature'] = signature["x-amz-signature"];
     file.s3Key = signature.key.replace('${filename}', file.name);
     file.guid = signature.guid;
   }

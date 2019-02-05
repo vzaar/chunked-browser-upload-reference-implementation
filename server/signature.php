@@ -25,9 +25,11 @@
     "part_size"          => $sig->part_size,
     "part_size_in_bytes" => $sig->part_size_in_bytes,
     "upload_hostname"    => $sig->upload_hostname,
-    "access_key_id"      => $sig->access_key_id,
     "acl"                => $sig->acl,
     "policy"             => $sig->policy,
-    "signature"          => $sig->signature
+    "x-amz-algorithm"    => $sig->{'x-amz-algorithm'},
+    "x-amz-credential"   => $sig->{'x-amz-credential'},
+    "x-amz-date"         => $sig->{'x-amz-date'},
+    "x-amz-signature"    => $sig->{'x-amz-signature'}
   ]);
 ?>

@@ -1,0 +1,9 @@
+t.php
+api_envs.php
+composer.phar
+examples/autoload.php
+vendor
+.idea
+.DS_Store
+*.mp4
+*.log
