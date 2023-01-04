@@ -21,7 +21,7 @@ Edit `server/common.php` and add your API credentials. Then you can start the ap
 To start the development server, from this repository directory, run the following command:
 
 ```
-php -S 0.0.0.0:999
+php -S 0.0.0.0:9999
 ```
 
 You can then navigate to [http://localhost:9999/client](http://localhost:9999/client) and try uploading files.
